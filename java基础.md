@@ -17,6 +17,40 @@
    从存储结构来讲，hashMap内部使用Node实现，Node是HashMap的一个内部类，实现了Map.Entry接口，本质是就是一个映射(键值对)。一个Node对象有四个属性：hash值，key，value，还有链表的下一个Node.  
    
    HashMap结构是数组+链表+红黑树（JDK1.8增加了红黑树部分),也就是解决hash冲突中的链地址法。简单来说就是数组加链表的结构，当key的到对应的hash值后，就得到数组的下表(哈希桶下标)，然后把数据放到对应数组的链表中。
+   
+   hashMap初始桶的大小为16，当链表的长度大于8时，转化为红黑树。负载因子是0.75,阀值threshold=length*0.75是hashMap所能容纳的最大数量，当hashMap的size大于阀值时，就会扩容，将length变为原来的2倍。
+   ### 怎么确定桶的索引
+   确定桶的索引即是hashMap的hash算法：
+   1.  获取key的hash值
+   2.  将hash值的高16位与低16位进行异或运算，得到h
+   3.  将 h&(length-1) 得到桶的索引
+   
+   为什么这么计算？  
+   1.  将高位与低位异或，这么做可以在length比较小的时候，也能保证考虑到高低Bit都参与到Hash的计算中，是桶的索引的分散更加均匀，减少hash碰撞同时不会有太大的开销。
+   2.  h&(length-1) 当length总是2的n次方时，h& (length-1)运算等价于对length取模，也更加的高效，同时也解释为什么length总是2的幂次方。
+   
+   ### hashMap的扩容机制
+   扩容(resize)即当前hashMap的size大于阀值，就需要扩大通道额数量。长度变为原来的2倍。
+   为什么长度要变为原来的两倍？首先是上面hash值的计算，然后当我们扩容为原来的两倍时，元素的位置要么是在原位置，要么是在原位置再移动2次幂的位置。
+   我们不需要再重新像jdk1.7那样重新计算hash值，只需要看看原来的hash值新增的那个bit是1还是0就好了，是0的话索引没变，是1的话索引变成“原索引+原来的hashMpa的长度”。  
+   
+   ![Alt](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2016/4d8022db.png)
+   ![Alt](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2016/d773f86e.png)
+   
+   ### 为什么hashMap是线程不安全的
+   HashMap是线程不安全的，它的不安全就体现在resize的时候，多线程的情况下，可能会形成环形链表，导致下一次读取的时候可能会出现死循环。
+   
+   ### 使用ConcurrentHashMap
+   
+   ConcurrentHashMap在java1.8中，抛弃了原有的 Segment 分段锁，而采用了 CAS + synchronized 来保证并发安全性。
+   结构同hashMap一样，内部都是Node节点存储数据，但是node节点中的val 和 next都使用了volatile保证可见性。
+   在put的时候会利用 synchronized 锁写入数据。
 #  关于ArrayList和LinkedList
+   ArrayList为动态数组,随机访问元素效率高，删除元素或者向数组总添加元素效率更低。
+   LinkedList是链表数组，数据添加，删除效率高，只需要改变指针即可，但访问元素效率低。
+   
+   ### 关于ArrayList
+   ArrayList默认大小为10，当加入元素个数大于10时，会扩容到原来大小的1.5倍。扩容，是重新定义一个原来大小1.5倍大小的数组，将原来的数据复制到新数组中，再把对象指向新的数组地址即可。
+   
 #  java抽象类和接口
 #  jdk 1.8相对于1.7有什么变化

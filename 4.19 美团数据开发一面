@@ -1,0 +1,4 @@
+#   1. Integer对象的==和equals，Integer缓冲池
+#   2. volatile和synorized关键字
+#   3. mysql 事务access.id
+#   4. 关于mysql索引，是否命中索引

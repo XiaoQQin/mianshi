@@ -1,7 +1,8 @@
 <!-- TOC -->
 [1. jvm内存的划分](#1-jvm内存的划分)  
-
-[2. 类加载过程](#2-类加载过程)
+[2. 类加载过程](#2-类加载过程)  
+[3. 类加载器](#3-类加载器)  
+[4. 双亲委派模型](#4-双亲委派模型)
 <!-- /TOC -->
 
 ## 1. jvm内存的划分
@@ -42,3 +43,21 @@
 真正开始执行类中定义的 Java 程序代码  
   
 [javaGuide/类加载过程](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/jvm/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B.md)
+
+##  3. 类加载器  
+java中所有的类都是由类加载器加载,加载的过程就是将.class文件加载到内存。  
+JVM 中内置了三个重要的 ClassLoader，除了 BootstrapClassLoader 其他类加载器均由 Java 实现且全部继承自```java.lang.ClassLoader```。  
+  
+  1.  **启动类加载器(BootstrapClassLoader)**:最顶层的加载类，由C++实现，负责加载 **%JAVA_HOME%/lib**目录下的jar包和类或者或被 -Xbootclasspath参数指定的路径中的所有类。  
+  2.  **扩展类加载器(ExtensionClassLoader)**:主要负责加载目录 **%JRE_HOME%/lib/ext** 目录下的jar包和类,注意事项jre_home，或被 java.ext.dirs 系统变量所指定的路径下的jar包。
+  3.  **应用程序类加载器(AppClassLoader)**: 面向我们用户的加载器，加载当前应用**classpath**下的jar包和类。    
+      
+
+[javaGuide/类加载器](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/jvm/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.md#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E6%80%BB%E7%BB%93)
+##   4. 双亲委派模型  
+虚拟机中类加载器会默认使用**双亲委派模型**。即类加载的时候，会首先判断该类是否已经被加载过，已经加载过的类会直接返回，否则才会尝试加载。加载该类时，会首先将请求委派给该类的父类加载器进行加载(loadClass()方法),因此所有的请求最终都应该传送到顶层的启动类加载器 BootstrapClassLoader中。当父类无法处理时，才有自己来进行处理。若父类加载器为null，则将启动类加载器(BootstrapClassLoader)作为父类加载器。  
+  
+**好处或者说是目的**   
+双亲委派模型保证了Java程序的稳定运行，可以避免类的重复加载.也保证了 Java 的核心 API 不被篡改。因为jvm判断类是否相同不仅仅因为类名，相同的类使用不同的类加载器也会被当做不同的类。  
+  
+[javaGuide/双亲委派模型](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/jvm/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8.md#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B)

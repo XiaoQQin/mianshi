@@ -1,4 +1,9 @@
-## 1. sql有几种join  
+<!-- TOC -->
+- [1. sql的join](#1-sql的join)  
+- [2. 数据库存储引擎](#2-数据库存储引擎)  
+  - [2.1 InnoDB和MyISAM](#21-InnoDB和MyISAM)
+<!-- /TOC -->
+## 1. sql的join  
 下面都是最基本的join  
 
 - 内连接(inner join)  
@@ -44,7 +49,19 @@ ON A.PK = B.PK;
   
 还有一些其他join，比如 **CROSS JOIN(笛卡尔集)**,**SELF JOIN**(返回表与自己连接后符合条件的记录，一般用在表里有一个字段是用主键作为外键的情况)等。  
 
-## 2. 数据库引擎  
+## 2. 数据库存储引擎  
+数据库存储引擎是数据库底层软件组织，数据库管理系统（DBMS）使用数据引擎进行创建、查询、更新和删除数据。不同的存储引擎提供不同的存储机制、索引技巧、锁定水平等功能，使用不同的存储引擎，还可以 获得特定的功能。现在许多不同的数据库管理系统都支持多种不同的数据引擎。MySQL的核心就是存储引擎。我们主要关注两个MySQL存储引擎。  
+  
+### 2.1 InnoDB和MyISAM  
+MySQL在5.5版本之前的数据库存储引擎默认为MyISAM,在5.5版本之后默认的存储引擎为InnoDB。最主要的是弄清楚这两个存储引擎之间的区别。  
+  
+两者的对比：  
+  - **是否支持行锁**： MyISAM 只有表级锁(table-level locking)，而InnoDB 支持行级锁(row-level locking)和表级锁,默认为行级锁。  
+  - **是否支持事务**：MyISAM不支持事务，InnoDB支持事务
+  - **是否支持外键**：MyISAM不支持外键，InnoDB支持
+  - **是否支持MVCC**: 仅InnoDB支持MVCC,应对高并发事务, MVCC比单纯的加锁更高效。MVCC只有在事务的**读提交**和**可重复读**两个事务级别下工作。  
+    
+[JavaGuide/存储引擎](https://github.com/Snailclimb/JavaGuide/blob/master/docs/database/MySQL.md#%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E)
 ## 3. 存储过程
 ## 4. 数据索引
 ## 5. 事务

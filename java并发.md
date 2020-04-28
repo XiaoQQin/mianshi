@@ -7,6 +7,11 @@
    - [4.2 Executor框架](#42-Executor框架)
    - [4.3 线程池参数](#43-线程池参数)  
    - [4.4 线程池执行流程](#44-线程池执行流程)
+- [5. volatile和synchronized的区别](#5-volatile和synchronized的区别)  
+- [6. synchronized关键字和lock的区别](#6-synchronized关键字和lock的区别)  
+   - [6.1 synchronized的低层实现](#61-synchronized的低层实现)  
+   - [6.2 Lock低层实现](#62-Lock低层实现)  
+   - [6.3 synchronized在JDK1.6以后的优化](#63-synchronized在JDK1.6以后的优化)
 <!-- /TOC -->
 ## 1. 进程和线程的区别
   
@@ -135,3 +140,61 @@
 ![图解线程池实现原理](https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-7/图解线程池实现原理.png)  
   
 更多详细内容，强烈推荐[java线程池学习总结](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/Multithread/java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93.md)
+
+## 5. volatile和synchronized的区别    
+  
+  
+在Java虚拟机规范中试图定义一种Java内存模型(**JMM**),来屏蔽各个硬件平台和操作系统的内存访问差异，以实现让Java程序在各种平台下都能达到一致的内存访问效果。  
+Java内存模型规定所有的变量都是存在主存当中（类似于前面说的物理内存），每个线程都有自己的工作内存（类似于前面的高速缓存）。线程对变量的所有操作都必须在工作内存中进行，而不能直接对主存进行操作。并且每个线程不能访问其他线程的工作内存。  
+如果一个程序想要并发的执行，那么必须保证原子性、可见性、一致性。   
+  
+  
+**原子性：即一个操作或者多个操作 要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行。  
+可见性：可见性是指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值。  
+有序性：有序性：即程序执行的顺序按照代码的先后顺序执行**  
+
+加入volatile关键字时，会多出一个lock前缀指令：
+lock前缀指令实际上相当于一个内存屏障（也成内存栅栏），内存屏障会提供3个功能：  
+   1)  它确保指令重排序时不会把其后面的指令排到内存屏障之前的位置，也不会把前面的指令排到内存屏障的后面；即在执行到内存屏障这句指令时，在它前面的操作已经全部完成  
+   2)  它会强制将对缓存的修改操作立即写入内存  
+   3)  如果是写操作，它会导致其他CPU中对应的缓存行无效。    
+   
+synchronized则会阻止其它线程获取当前对象的监控锁，这样就使得当前对象中被synchronized关键字保护的代码块无法被其它线程访问，也就无法并发执行。
+关于volatile和synchronized的区别：
+1)  volatile本质是在告诉当前线程中的工作内存中的值是不确定的，需要从主存中读取； synchronized则是锁定当前变量，只有当前线程可以访问该变量，其他线程被阻塞住。
+2)  volatile仅能使用在变量级别；synchronized则可以使用在变量、方法、和类级别的
+3)  volatilebn能实现变量的修改可见性和有序性，不能保证原子性；而synchronized则可以保证变量的修改可见性和原子性,有序性
+4)  volatile不会造成线程的阻塞；synchronized可能会造成线程的阻塞
+
+[Java并发编程：volatile关键字解析](https://www.cnblogs.com/dolphin0520/p/3920373.html)  
+
+## 6. synchronized关键字和lock的区别  
+  1. Lock是一个接口，而synchronized是Java中的关键字，synchronized是内置的语言实现  
+  2. synchronized发生异常时会自动释放线程占有的锁，防止死锁的发生；而Lock发生异常时，如果没有主动通过unLock()去释放锁，则很可能造成死锁现象，因此使用finally块中释放锁  
+  3. Lock可以让等待锁的线程响应中断，而synchronized却不行，使用synchronized时，等待的线程会一直等待下去，不能够响应中断  
+  4. 通过Lock的tryLock()可以知道有没有成功获得锁，而synchronized 无法办到     
+      
+### 6.1 synchronized的低层实现  
+java是用字节码指令来控制程序，在字节指令中，存在synchronized关键字的所包含的代码块会形成2段流程的执行。  
+synchronized映射成字节码指令就是增加来两个指令：**monitorenter**和**monitorexit**。当一个线程执行遇到**monitorenter**指令时，他会尝试获得锁，如果获得锁，那么锁计数+1（为什么会加一呢，因为它是一个可重入锁，所以需要用这个锁计数判断锁的情况），如果没有获得锁，那么阻塞。当线程遇到**monitorexit**时，锁计数-1,当计数器为0，那么就会释放锁。  
+synchronized锁释放有两种机制，一种就是执行完释放；另外一种就是发送异常，虚拟机释放。所以一个synchronized关键字会有两个**monitorexit**，其中一个会在程序异常时执行来释放锁。  
+  
+### 6.2 Lock低层实现  
+**Lock**实现和**synchronized**不一样，后者是一种悲观锁，而**Lock**是采用CAS乐观锁，主要靠volatile和CAS低层实现。  
+  
+尽可能去使用synchronized而不要去使用LOCK。在Java1.5中，synchronize是性能低效的。因为这是一个重量级操作，需要调用操作接口，导致有可能加锁消耗的系统时间比加锁以外的操作还多。相比之下使用Java提供的Lock对象，性能更高一些。但是到了Java1.6，发生了变化，官方也表示，他们也更支持synchronize，在未来的版本中还有优化余地。  
+  
+### 6.3 synchronized在JDK1.6以后的优化  
+  
+1. 线程自旋和适用性自旋  
+  
+ java线程其实是映射在内核之上的，线程的挂起和恢复会极大的影响开销。许多线程在等待锁的时候，在很短一段时间就获得了锁，所以它们在线程等待的时候，并不需要把线程挂起，而是让他无目的的循环，一般设置10次。这样就避免了线程切换的开销，极大的提升了性能。  
+ **适用性自旋**，是赋予自旋一种学习能力，并不固定自旋10下，而是根据前面线程的自旋情况，调整自己的自旋。  
+   
+2. 锁清除：把不必要的同步在编译阶段进行移除  
+3. 锁粗化：
+4. 轻量级锁  
+5. 偏向锁  
+   
+参考链接：[Java中synchronized与lock的区别与使用场景](https://my.oschina.net/u/4045381/blog/3082532)  
+         [详解synchronized与Lock的区别与使用](https://blog.csdn.net/u012403290/article/details/64910926)

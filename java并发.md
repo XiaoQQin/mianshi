@@ -13,7 +13,11 @@
 - [6. synchronized关键字和lock的区别](#6-synchronized关键字和lock的区别)  
    - [6.1 synchronized的低层实现](#61-synchronized的低层实现)  
    - [6.2 Lock低层实现](#62-Lock低层实现)  
-   - [6.3 synchronized在JDK1.6以后的优化](#63-synchronized在JDK1.6以后的优化)
+   - [6.3 synchronized在JDK1.6以后的优化](#63-synchronized在JDK1.6以后的优化)  
+- [7. 线程之间的协作](#7-线程之间的协作)
+   - [7.1 sleep和wait方法](#71-sleep和wait方法)  
+   - [7.2 notify和notifyAll方法](#72-notify和notifyAll方法)
+   - [7.3 join方法](#73-join方法)
 <!-- /TOC -->
 ## 1. 进程和线程的区别
   
@@ -206,5 +210,24 @@ synchronized锁释放有两种机制，一种就是执行完释放；另外一�
 4. 轻量级锁  
 5. 偏向锁  
    
-参考链接：[Java中synchronized与lock的区别与使用场景](https://my.oschina.net/u/4045381/blog/3082532)  
-         [详解synchronized与Lock的区别与使用](https://blog.csdn.net/u012403290/article/details/64910926)
+[Java中synchronized与lock的区别与使用场景](https://my.oschina.net/u/4045381/blog/3082532)  
+[详解synchronized与Lock的区别与使用](https://blog.csdn.net/u012403290/article/details/64910926)  
+[深入理解Java并发之synchronized实现原理](https://blog.csdn.net/javazejian/article/details/72828483)  
+
+## 7. 线程之间的协作   
+### 7.1 sleep和wait方法
+  - sleep()是线程类Thread的方法，而wait是Object类的方法  
+  - sleep不会释放当前对象的锁，到时间后会继续执行，wait()方法则是指当前线程让自己暂时退让出同步资源锁，以便其他正在等待该资源的线程得到该资源进而运行，只有调用了notify()/notifyAll()方法，之前调用wait()的线程才会解除wait状态，可以去参与竞争同步资源锁，进而得到执行  
+  
+### 7.2 notify和notifyAll方法
+    
+  这两个方法都是Object对象的方法，不需要继承Thread类  
+  - 如果线程调用了对象的 wait()方法，那么线程便会处于该对象的等待池中，等待池中的线程不会去竞争该对象的锁。  
+  - 当有线程调用了对象的 notifyAll()方法（唤醒所有 wait 线程）或 notify()方法（只随机唤醒一个 wait 线程），被唤醒的的线程便会进入该对象的锁池中，锁池中的线程会去竞争该对象锁。也就是说，调用了notify后只要一个线程会由等待池进入锁池，而notifyAll会将该对象等待池内的所有线程移动到锁池中，等待锁竞争。  
+  - notify可能会导致死锁，而notifyAll则不会。  
+    
+  [java中的notify和notifyAll有什么区别](java中的notify和notifyAll有什么区别？ - 知乎用户的回答 - 知乎
+https://www.zhihu.com/question/37601861/answer/145545371)  
+  
+### 7.3 join方法  
+在线程中调用另一个线程的 join() 方法，会将当前线程挂起，而不是忙等待，直到目标线程结束。

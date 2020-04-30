@@ -98,18 +98,18 @@ InnoDB记录的格式如下所示:
      比如表中一行记录中c1,c3,c4为NULL，则NULL值列表为一个字节 0 0 0 0 0 1(c4) 1(c3) 0(c1),使用16进制为 06。      
      
   
- ![填充数据.PNG](https://i.loli.net/2020/04/30/wY1cySM8d9sPq45.png)  
+![tc数据.png](https://i.loli.net/2020/04/30/Y89vgBykdxFcr41.png)  
+
    
    
 3.  **记录头信息**:它是由固定的5个字节组成。5个字节也就是40个二进制位，不同的位代表不同的意思，如下所示：  
   
   
- ![记录头信息.PNG](https://i.loli.net/2020/04/30/AptUhogelIBLuYW.png)
- 
+![lutou.png](https://i.loli.net/2020/04/30/nR9Thg3viAmQwdp.png)
  
    
     
- | 名称       | 大小(bit)         | 描述        |
+| 名称       | 大小(bit)         | 描述        |
 |:-----------| :-------------:|:-------------:|
 | 预留位1  | 1 | 没有使用 |
 | 预留位2  | 1 | 没有使用 |

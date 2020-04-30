@@ -74,7 +74,15 @@ MySQL在5.5版本之前的数据库存储引擎默认为MyISAM,在5.5版本之�
 **缺点**  
   - 存储过程，往往定制化于特定的数据库上，因为支持的编程语言不同。当切换到其他厂商的数据库系统时，需要重写原有的存储过程。  
   - 存储过程的性能调校与撰写，受限于各种数据库系统。  
-
+## 4. MySQL的存储结构  
+因为MySQL的默认数据库存储引擎为InnoDB,所以只分析InnoDB的存储结构
+### 4.1 InnoDB行记录存储结构  
+我们平时以记录(可以简单的理解为数据表中的一行数据)为单位来向表中插入数据的，这些记录在磁盘上的存放方式也被称为**行格式或者记录格式**。InnoDB如今有4中不同的**行格式**,分别是**Compact**、**Redundant**、**Dynamic**和**Compressed**，这四种行格式原理大致相同，只分析**Compact**。  
+  
+可在建表时设置``ROW_FORMAT=行格式名称``来设置表的行格式，也可使用``ALTER TABLE 表名 ROW_FORMAT=行格式名称``来修改行格式。      
+  
+InnoDB记录的格式如下所示:  
+![Compact行格式示意图](https://mmbiz.qpic.cn/mmbiz_png/RLmbWWew55FVTOrSL5huibzeawNtia5ey37MIoP0YPpYdY7Y0TO0iaZ3a79QB7GiaHyTqJTicNBQ6Nk202h4JECicib3A/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
 ## 4. 数据库索引  
 索引是一种用于快速查询和检索数据的数据结构，比较常见的的索引结构为:B树，B+树和Hash。数据库可以通过索引加快数据的检索，索引就好比书中的目录一样，可以快速定位数据所在的位置。  
 

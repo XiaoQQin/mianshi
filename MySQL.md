@@ -6,6 +6,12 @@
 - [4. MySQL的存储结构](#4-MySQL的存储结构)
   - [4.1 InnoDB行记录存储结构](#41-InnoDB行记录存储结构)  
   - [4.2 InnoDB数据页结构](#42-InnoDB数据页结构)
+- [5. 数据库索引](#5-数据库索引)  
+  - [5.1 索引的优缺点分析](#51-索引的优缺点分析)
+  - [5.2 B树和B+树的区别](#51-B树和B+树的区别)
+  - [5.3 索引为什么可以加快数据库的检索速度](#53-索引为什么可以加快数据库的检索速度)  
+  - [5.4 索引的分类](#54-索引的分类)  
+  - [5.5 最左匹配原则](#55-最左匹配原则)
 <!-- /TOC -->
 ## 1. sql的join  
 下面都是最基本的join  
@@ -193,6 +199,10 @@ next_record非常重要，它表示从当前记录的真实数据到下一条记
 #### 数据页之间的结构  
 每页都有  **File Header** 部分，它里面包含着本页的上一个和下一个数据页的页号，所以所有的数据页会组成一个**双链表**。  
 
+强烈推荐:  
+[ 我们都是小青蛙/InnoDB记录存储结构](https://mp.weixin.qq.com/s?__biz=MzIxNTQ3NDMzMw==&mid=2247483670&idx=1&sn=751d84d0ce50d64934d636014abe2023&chksm=979688e4a0e101f2a51d1f06ec75e25c56f8936321ae43badc2fe9fc1257b4dc1c24223699de&scene=21#wechat_redirect)  
+[ 我们都是小青蛙/InnoDB数据页结构](https://mp.weixin.qq.com/s?__biz=MzIxNTQ3NDMzMw==&mid=2247483678&idx=1&sn=913780d42e7a81fd3f9b747da4fba8ec&chksm=979688eca0e101fa0913c3d2e6107dfa3a6c151a075c8d68ab3f44c7c364d9510f9e1179d94d&scene=21#wechat_redirect)  
+
 ## 5. 数据库索引  
 索引是一种用于快速查询和检索数据的数据结构，比较常见的的索引结构为:B树，B+树和Hash。数据库可以通过索引加快数据的检索，索引就好比书中的目录一样，可以快速定位数据所在的位置。  
 
@@ -259,7 +269,9 @@ InnoDB中的索引是一棵B+树，一般说非叶子节点不存储数据(数�
   
 这样就可以回答为什么索引可以加快检索记录：  
 InnoDB的存储结构为数据页，每页为16k,页与页之间会建立双向链表，我们遍历一条记录需要根据双向链，找到对应记录所在的数据页。在这过程中需要遍历每个经过数据页中的的记录，如果建立索引，由于建立的索引是根据列进行排序的，可以很快的定位到用户记录所在的数据页。  
-
+  
+强烈推荐：[ 我们都是小青蛙/MySQL的索引](https://mp.weixin.qq.com/s?__biz=MzIxNTQ3NDMzMw==&mid=2247483701&idx=1&sn=bd229dd584f51ef4fe545d44ad8cdbf9&chksm=979688c7a0e101d1b5c752094013b78f5bd50ab905257ba82149d85d35ea07aba1a15b0e52b4&mpshare=1&scene=1&srcid=0409Tn66UYWSWvqEVlOpwGtR&key=6cd553e86912686a47d76f2d900b1b5b388c90b29708f016db3a6e1bcebe032220ba63626095c4298f32cda7d0d7bd11bded2365f05c32e522584dd149b98db0bb8549ef144cdca694665d31d35cfeef&ascene=0&uin=MzAzMjU4NDM3Nw%3D%3D&devicetype=iMac+MacBookPro12%2C1+OSX+OSX+10.12.4+build(16E195)&version=12020810&nettype=WIFI&lang=zh_CN&fontScale=100&pass_ticket=YHEmqDDX8hHkj5FiSVpQvjYqIMBDHHDS2po4mfJe%2BqIXlqwJI%2Bg7aJUZq0%2BDwGJ0)  
+[javaGuide/数据库索引](https://github.com/Snailclimb/JavaGuide/blob/master/docs/database/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95.md)
 ### 5.4 索引的分类  
 
 #### 聚簇索引  
@@ -278,5 +290,25 @@ InnoDB的存储结构为数据页，每页为16k,页与页之间会建立双向�
 这样做的原因是为了节省空间和性能，如果将完整的用户记录放到叶子节点是可以不用回表(也就是根据主键再查询一次)，但是极大的浪费空间，相当于每建立一棵B+树都需要把所有的用户记录再都拷贝一遍。
   
 #### 联合索引  
-以多个列的大小作为排序规则，建立索引。
+以多个列的大小作为排序规则，建立索引。联合索引只会建立一个B+树，比如我们依照c1、c2建立联合索引，主键为c1。  
+-  每条目录项记录都由c2、c3、页号这三个部分组成，各条记录先按照c2列的值进行排序，如果记录的c2列相同，则按照c3列的值进行排序  
+-  B+树叶子节点处的用户记录由c2、c3和主键c1列组成    
+  
+#### 覆盖索引  
+如果一个索引包含（或者说覆盖）所有需要查询的字段的值，我们就称之为“覆盖索引”。我们知道在InnoDB存储引擎中，如果不是主键索引，叶子节点存储的是主键+列值。最终还是要“回表”，也就是要通过主键再查找一，这样就会比较慢覆盖索引就是把要查询出的列和索引是对应的，不做回表操作。  
+
+如果一条SQL需要查询name，name字段正好有索引， 那么直接根据这个索引就可以查到数据，也无需回表。  
+
+###  5.5 最左匹配原则  
+  
+最左优先，以最左边的为起点任何连续的索引都能匹配上。同时遇到范围查询(>、<、between、like)就会停止匹配。**where子句几个搜索条件顺序调换不影响查询结果，因为Mysql中有查询优化器，会自动优化查询顺序**。  
+  
+那么联合索引还是一颗B+树，只不过联合索引的健值数量不是一个，而是多个。构建一颗B+树只能根据一个值来构建，因此数据库依据联合索引最左的字段来构建B+树。  
+如下图所示，根据(a,b)建立联合索引：  
+![ab联合索引](https://img-blog.csdnimg.cn/20190401113210176.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3NpbmF0XzQxOTE3MTA5,size_16,color_FFFFFF,t_70)  
+  
+到a的值是有顺序的,在a值相等的情况下，b值又是按顺序排列的，但是这种顺序是相对的。所以最左匹配原则遇上范围查询就会停止，剩下的字段都无法使用索引。例如a = 1 and b = 2 a,b字段都可以使用索引，因为在a值确定的情况下b是相对有序的，而a>1and b=2，a字段可以匹配上索引，但b值不可以，因为a的值是一个范围，在这个范围中b是无序的。  
+
+[Mysql最左匹配原则](https://blog.csdn.net/sinat_41917109/article/details/88944290?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1)
+
 ## 6. 事务

@@ -1,3 +1,11 @@
+<!-- TOC -->
+- [1. RDD的基本原理](#1-RDD的基本原理)  
+- [2. spark的部署方式](#2-spark的部署方式)  
+- [3. 创建RDD的方式](#3-创建RDD的方式)  
+- [4. RDD的依赖关系](#4-RDD的依赖关系)  
+- [5. RDD的持久化](#5-RDD的持久化)  
+- [6. Spark的Checkpoint机制](#6-Spark的Checkpoint机制)
+<!-- /TOC -->
 ## 1. RDD的基本原理  
 RDD（Resilient Distributed Dataset）叫做弹性分布式数据集，是Spark中最基本的数据抽象，它代表一个不可变、可分区、里面的元素可并行计算的集合。  
 RDD具有数据流模型的特点：自动容错、位置感知性调度和可伸缩性。它并不是真正存储数据的结构，而是一种抽象的概念,我们可以认为 RDD 就是一个代理，
@@ -47,7 +55,7 @@ var rdd2 = sc.textFile("hdfs:192.168.80.131:9000/words.text")
   
 - **调用一个已经存在了的RDD 的 Transformation，会生成一个新的 RDD**
   
-## 4. RDD 的依赖关系  
+## 4. RDD的依赖关系  
   
 1) **窄依赖**：每个父RDD的一个partition最多被子RDD的一个partition所使用，例如map(独生子女)  
 2) **宽依赖**: 一个父RDD的partition会被多个子RDD的partirion所使用，例如reduceByKey(非独生子女)  

@@ -57,3 +57,17 @@ Spark非常重要的一个功能特性就是可以将RDD持久化在内存中。
   
 - **cache**:内部调用persist，持久化到内存  
 - **persist**: 自由设置存储级别，默认为内存
+
+## 6. Spark的Checkpoint机制  
+Checkpoint 是 Spark 提供的一种缓存机制，checkpoint的意思就是建立检查点,类似于快照。当需要计算依赖链非常长又想避免重新计算之前的 RDD 时，可以对 RDD 做 Checkpoint 处理，检查 RDD 是否被物化或计算，并将结果持久化到磁盘或 HDFS 内。  
+  
+#### checkpoint与cache对比  
+  
+cache 缓存数据由 executor 管理，若 executor 消失，它的数据将被清除，RDD 需要重新计算；而 checkpoint 将数据保存到磁盘或 HDFS 内，job 可以从 checkpoint 点继续计算  
+  
+#### checkpoint与persist对比  
+Spark 提供了 rdd.persist(StorageLevel.DISK_ONLY) 这样的方法，相当于 cache 到磁盘上，这样可以使 RDD 第一次被计算得到时就存储到磁盘上。  
+  
+ 
+-  persist 虽然可以将 RDD 的 partition 持久化到磁盘，但一旦作业执行结束，被 cache 到磁盘上的 RDD 会被清空  
+-  checkpoint 将 RDD 持久化到 HDFS 或本地文件夹，如果不被手动 remove 掉，是一直存在的。

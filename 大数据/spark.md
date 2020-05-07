@@ -30,3 +30,30 @@ Partitioner函数不但决定了RDD本身的分片数量，也决定了parent RD
 2) standalone模式: 集群模式,Spark自带的一个资源调度框架，支持完全分布式。  
 3) spark on yarn ：集群模式，运行在yarn资源管理器框架之上，由yarn负责资源管理，Spark负责任务调度和计算 
 4) spark on mesos： 运行在mesos资源管理器框架之上，由mesos负责资源管理，Spark负责任务调度和计算
+  
+## 3. 创建RDD的方式  
+  
+- **由一个存在的 Scala 集合进行创建**  
+  
+```
+var rdd = sc.parallelize(List(1,2,3,4,5,6,7,8,9))
+```  
+- **由外部的存储系统的数据集创建，包括本地的文件系统，还有所有 Hadoop 支持的数据集，比如 HDFS、Cassandra、Hbase**  
+  
+```
+var rdd1 = sc.textFile("/root/words.txt")
+var rdd2 = sc.textFile("hdfs:192.168.80.131:9000/words.text")
+```
+  
+- **调用一个已经存在了的RDD 的 Transformation，会生成一个新的 RDD**
+  
+## 4. RDD 的依赖关系  
+  
+1) **窄依赖**：每个父RDD的一个partition最多被子RDD的一个partition所使用，例如map(独生子女)  
+2) **宽依赖**: 一个父RDD的partition会被多个子RDD的partirion所使用，例如reduceByKey(非独生子女)  
+  
+## 5. RDD的持久化  
+Spark非常重要的一个功能特性就是可以将RDD持久化在内存中。当对RDD执行持久化操作时，每个节点都会将自己操作的RDD的partition持久化到内存中，并且在之后对该RDD的反复使用中，直接使用内存缓存的partition。RDD持久化是使用persist和cache两个函数。  
+  
+- **cache**:内部调用persist，持久化到内存  
+- **persist**: 自由设置存储级别，默认为内存

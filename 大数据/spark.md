@@ -4,7 +4,12 @@
 - [3. 创建RDD的方式](#3-创建RDD的方式)  
 - [4. RDD的依赖关系](#4-RDD的依赖关系)  
 - [5. RDD的持久化](#5-RDD的持久化)  
-- [6. Spark的Checkpoint机制](#6-Spark的Checkpoint机制)
+- [6. Spark的Checkpoint机制](#6-Spark的Checkpoint机制)  
+- [7. job和Stage和Task](#7-job和Stage和Task)  
+- [8. Spark的运行流程](#8-Spark的运行流程)  
+- [9. 数据倾斜](#9-数据倾斜)  
+    - [9.1 什么是数据倾斜](#91-什么是数据倾斜)  
+    - [9.2 数据倾斜的解决方案](#92-数据倾斜的解决方案)
 <!-- /TOC -->
 ## 1. RDD的基本原理  
 RDD（Resilient Distributed Dataset）叫做弹性分布式数据集，是Spark中最基本的数据抽象，它代表一个不可变、可分区、里面的元素可并行计算的集合。  
@@ -79,3 +84,38 @@ Spark 提供了 rdd.persist(StorageLevel.DISK_ONLY) 这样的方法，相当于 
  
 -  persist 虽然可以将 RDD 的 partition 持久化到磁盘，但一旦作业执行结束，被 cache 到磁盘上的 RDD 会被清空  
 -  checkpoint 将 RDD 持久化到 HDFS 或本地文件夹，如果不被手动 remove 掉，是一直存在的。
+  
+## 7. job和Stage和Task  
+  
+**当遇到一个action算子时，就会提交一个job**，执行前面的一系列操作，通常一个任务会有多个job，job之间是按照串行的方式执行的。  
+一个job包括一个或者多个stage，stage是根据是否发生shuffle划分的。  
+一个Stage由多个task组成，task的数量是stage的并行度，RDD计算时，每个分区都会生成一个Task
+  
+## 8. Spark的运行流程  
+  
+1) 构建Spark Applcation的运行环境(启动SparkContext)。SparkContext向资源管理器(可以是standalone获yarn)注册并申请运行Executor资源。  
+2) 资源管理器分配资源给Executor，并启动守护进程StandaloneExecutorBackend,Execuor运行情况将随心跳发送到资源管理器上。  
+3) SparkContext构建DAG图，将DAG图分解为Stage，并把Taskset(Stage)发送给Task Scheduler。Executor向SparkContext申请Task  
+4) Task Scheduler将Task发送给Executor发送给Executor运行，同时SparkContext将应用程序代码发送给Executor。  
+5) Task在Executor上运行，完毕后释放资源。 
+  
+## 9. 数据倾斜  
+  
+### 9.1 什么是数据倾斜  
+ 在进行shuffle时，必须将各个节点上相同key拉取到某一个节点上的一个task来进行，此时key对应的数据量特别大，就会发生数据倾斜。比如大部分key对应10条数据，但是个别key却对应了100万条数据，那么大部分task可能就只会分配到10条数据，然后1秒钟就运行完了；但是个别task可能分配到了100万数据，要运行一两个小时。因此，整个Spark作业的运行进度是由运行时间最长的那个task决定的。  
+   
+出现数据倾斜的时候，Spark作业看起来会运行得非常缓慢，甚至可能因为某个task处理的数据量过大导致内存溢出。  
+  
+### 9.2 数据倾斜的解决方案  
+-  **过滤少数导致倾斜的key**:导致倾斜的key就少数几个，并且对结算结果影响不大的话，就可以采用filter等算子进行过滤，适用场景不多。  
+-  **提高shuffle操作的并行度**: 对RDD执行shuffle算子时，给shuffle算子传入一个参数，比如reduceByKey(1000)，该参数就设置了这个shuffle算子执行时shuffle read task的数量。  
+  
+- **两阶段聚合（局部聚合+全局聚合）**：将原本相同的key通过附加随机前缀的方式，变成多个不同的key，就可以让原本被一个task处理的数据分散到多个task上去做局部聚合，进而解决单个task处理数据量过多的问题。接着去除掉随机前缀，再次进行全局聚合，就可以得到最终的结果。  
+  
+- **将reduce join转为map join**：普通的join是会走shuffle过程的，而一旦shuffle，就相当于会将相同key的数据拉取到一个shuffle read task中再进行join，此时就是reduce join。但是如果一个RDD是比较小的，则可以采用广播小RDD全量数据+map算子来实现与join同样的效果，也就是map join，此时就不会发生shuffle操作，也就不会发生数据倾斜  
+  
+- **采样倾斜key并分拆join操作**：对于join导致的数据倾斜，如果只是某几个key导致了倾斜，可以将少数几个key分拆成独立RDD，并附加随机前缀打散成n份去进行join，此时这几个key对应的数据就不会集中在少数几个task上，而是分散到多个task进行join了。  
+  
+- **使用随机前缀和扩容RDD进行join**：将原先一样的key通过附加随机前缀变成不一样的key，然后就可以将这些处理后的“不同key”分散到多个task中去处理，而不是让一个task处理大量的相同key
+     
+ [Spark（十）Spark之数据倾斜调优](https://www.cnblogs.com/frankdeng/p/9301695.html)

@@ -64,7 +64,19 @@ public static Integer valueOf(int i) {
    1.  获取key的hash值
    2.  将hash值的高16位与低16位进行异或运算，得到h
    3.  将 h&(length-1) 得到桶的索引
-   
+   ```
+   方法一
+   static final int hash(Object key) {   //jdk1.8 & jdk1.7
+     int h;
+     // h = key.hashCode() 为第一步 取hashCode值
+     // h ^ (h >>> 16)  为第二步 高位参与运算
+     return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+    }
+    方法二：
+    static int indexFor(int h, int length) {  //jdk1.7的源码，jdk1.8没有这个方法，但是实现原理一样的
+       return h & (length-1);  //第三步 取模运算
+    }
+   ```
    为什么这么计算？ 
    1.  将高位与低位异或，这么做可以在length比较小的时候，也能保证考虑到高低Bit都参与到Hash的计算中，是桶的索引的分散更加均匀，减少hash碰撞同时不会有太大的开销。
    2.  h&(length-1) 当length总是2的n次方时，h& (length-1)运算等价于对length取模，也更加的高效，同时也解释为什么length总是2的幂次方。

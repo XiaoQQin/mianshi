@@ -136,7 +136,13 @@ Integer[] s=new Integer[7];
 Arrays.sort(s,(a,b)->b-a);
 //使用lamda表达式实现runnable接口
 new Thread(()->{System.out.println("thread start");}).start();
-```
+```  
+  
+[函数式接口和Lambda表达式深入理解](https://www.jianshu.com/p/40f833bf2c48)  
+  
+[关于Java Lambda表达式看这一篇就够了](https://objcoding.com/2019/03/04/lambda/#lambda-and-anonymous-classesii)  
+  
+
 2.  **方法引用**： 通过类名称::方法的名字来指向一个静态方法或者构造函数引用,比如 System.out::println。  
 ```
 List<String> demoList = Arrays.asList("小明", "Zing", "阿三", "小红", "赵日天");

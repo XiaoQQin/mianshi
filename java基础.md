@@ -137,11 +137,42 @@ Arrays.sort(s,(a,b)->b-a);
 //使用lamda表达式实现runnable接口
 new Thread(()->{System.out.println("thread start");}).start();
 ```
-2.  **方法引用**： 通过类名称::方法的名字来指向一个方法,使用双冒号 :: .比如 System.out:println
-3.  **默认方法**:  默认方法就是一个在接口里面有了一个实现的方法,使用关键字default,还可以有静态变量及方法。
-4.  **函数接口**： 是一个有且仅有一个抽象方法，但是可以有多个非抽象方法的接口。可以转化为lambda表达式
-5.  **引入Stream**: 函数式编程的核心，类似于spark RDD。有中间操作和结束操作 类似于spark的transformer 和 action.
+2.  **方法引用**： 通过类名称::方法的名字来指向一个静态方法或者构造函数引用,比如 System.out::println。  
+```
+List<String> demoList = Arrays.asList("小明", "Zing", "阿三", "小红", "赵日天");
+demoList.forEach(System.out::println);
+```
+3.  **默认方法**:  默认方法就是一个在接口里面有了一个实现的方法,使用关键字default,还可以有静态变量及方法。  
+```
+public interface testInterface {
+    int a=1;
+    default void testDefault(){
+        //直接在implements的类里直接调用，testDefault(),不需要testInterface.
+        System.out.println(a);
+    }
+}
+```
+4.  **函数接口**： 是一个接口中**有且仅有一个抽象方法**，但是可以有多个非抽象方法的接口。可以转化为lambda表达式.可以使用**@FunctionalInterface**标记。  
+```
+@FunctionalInterface //只有一个抽象方法
+public interface testInterface {
+    int a=1;
+    //静态方法，非抽象
+    static void showForInterface(){
 
+        System.out.println(a);
+    }
+    //默认方法,非抽象
+    default void testDefault(){
+        //直接在implements的类里直接调用，testDefault(),不需要testInterface.
+        System.out.println(a);
+    }
+    //唯一的一个抽象方法
+    void funInInterface();
+}
+```
+5.  **引入Stream**: 函数式编程的核心，类似于spark RDD。有中间操作和结束操作 类似于spark的transformer 和 action.  
+6.  **HashMap性能优化**：引入了红黑树，当链表超过8时，链表就转换为红黑树。
 ## 8. java内部类
 将一个类定义在类里面或者是方法里,这个定义的类就被称为内部类。使用内部类最吸引人的原因是：**每个内部类都能独立地继承一个（接口的）实现，所以无论外围类是否已经继承了某个（接口的）实现，对于内部类都没有影响。**    
 

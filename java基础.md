@@ -127,6 +127,16 @@ public static Integer valueOf(int i) {
 3)  一个类只能继承一个抽象类，但是可以实现多个接口。
 ## 7. jdk1.8相对于1.7有什么变化
 1.  **lambda表达式**：可以将函数作为参数传递进方法中，使代码更加简洁，可以简化匿名内部类的书写，但是这个匿名内部类必须是个函数接口。比如线程的创建runnable
+```
+//使用lamda表达式实现Comparator接口
+ArrayList<Integer> list=new ArrayList<>();
+Collections.sort(list,(a,b)->b-a);
+
+Integer[] s=new Integer[7];
+Arrays.sort(s,(a,b)->b-a);
+//使用lamda表达式实现runnable接口
+new Thread(()->{System.out.println("thread start");}).start();
+```
 2.  **方法引用**： 通过类名称::方法的名字来指向一个方法,使用双冒号 :: .比如 System.out:println
 3.  **默认方法**:  默认方法就是一个在接口里面有了一个实现的方法,使用关键字default,还可以有静态变量及方法。
 4.  **函数接口**： 是一个有且仅有一个抽象方法，但是可以有多个非抽象方法的接口。可以转化为lambda表达式

@@ -223,3 +223,56 @@ OuterClass.InnerClass innerClass = outerClass.new InnerClass();
 
 [如何理解BIO、NIO、AIO的区别](https://juejin.im/post/5dbba5df6fb9a0204a08ae55#heading-6)  
 [BIO,NIO,AIO 总结](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/BIO-NIO-AIO.md#bionioaio-%E6%80%BB%E7%BB%93)
+
+## 10. java泛型   
+泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数。泛型类型在逻辑上看以看成是多个不同的类型，实际上都是相同的基本类型。
+泛型有三种使用方式，分别为：泛型类、泛型接口、泛型方法。  
+  
+### 泛型类
+泛型类定义时只需要在类名后面加上类型参数即可.  
+
+```
+class DataHolder<T>{
+    T item;
+    
+    public void setData(T t) {
+    	this.item=t;
+    }
+    
+    public T getData() {
+    	return this.item;
+    }
+}
+```  
+### 泛型方法  
+泛型方法既可以存在于泛型类中，也可以存在于普通的类中。如果使用泛型方法可以解决问题，那么应该尽量使用泛型方法。所有泛型方法声明都有一个类型参数声明部分（由尖括号分隔），该类型参数声明部分在方法返回类型之前。  
+  
+```
+public <E> void PrinterInfo(E e) {
+    	System.out.println(e);
+}
+```
+泛型方法里面的类型参数E和泛型类里面的类型参数(如果类是一个泛型类)是不一样的类型，既然如果泛型类声明为 ```class testClass<E>```，并且声明的该类的一个对象```testClass<String> tc=new testClass<>();```,声明对象里的为String类型，那么PrinterInfo接受的参数可以为其他类型。
+  
+### 泛型接口
+Java泛型接口的定义和Java泛型类基本相同,在声明类的时候，需将泛型的声明也一起加到类中。
+```
+//定义一个泛型接口
+public interface Generator<T> {
+    public T next();
+}
+
+/* 即：class DataHolder implements Generator<T>{
+ * 如果不声明泛型，如：class DataHolder implements Generator<T>，编译器会报错："Unknown class"
+ */
+class FruitGenerator<T> implements Generator<T>{
+    @Override
+    public T next() {
+        return null;
+    }
+}
+
+```  
+  
+[深入理解Java泛型](https://juejin.im/post/5b614848e51d45355d51f792#heading-4)
+## 11. java反射

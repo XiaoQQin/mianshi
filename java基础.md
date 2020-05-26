@@ -276,3 +276,101 @@ class FruitGenerator<T> implements Generator<T>{
   
 [深入理解Java泛型](https://juejin.im/post/5b614848e51d45355d51f792#heading-4)
 ## 11. java反射
+Java 反射机制在程序**运行时**，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意一个方法和属性。这种**动态的获取信息**以及**动态调用对象的方法**的功能称为 **java的反射机制**。  
+  
+### 使用反射获取类的信息    
+  
+
+1.  获取类的所有变量信息  
+```
+//1.获取并输出类的名称
+Class mClass = SonClass.class;
+System.out.println("类的名称：" + mClass.getName());
+
+//2.1 获取所有 public 访问权限的变量
+// 包括本类声明的和从父类继承的
+Field[] fields = mClass.getFields();
+```  
+  
+2. 获取类的所有方法信息  
+```
+//1.获取并输出类的名称
+Class mClass = SonClass.class;
+System.out.println("类的名称：" + mClass.getName());
+
+//2.1 获取所有 public 访问权限的方法
+//包括自己声明和从父类继承的
+Method[] mMethods = mClass.getMethods();
+
+```
+  
+### 访问或操作类的私有变量和方法  
+  
+1.  访问私有方法  
+  
+```
+/**
+ * 访问对象的私有方法
+ * 为简洁代码，在方法上抛出总的异常，实际开发别这样
+ */
+private static void getPrivateMethod() throws Exception{
+    //1. 获取 Class 类实例
+    TestClass testClass = new TestClass();
+    Class mClass = testClass.getClass();
+    
+    //2. 获取私有方法
+    //第一个参数为要获取的私有方法的名称
+    //第二个为要获取方法的参数的类型，参数为 Class...，没有参数就是null
+    //方法参数也可这么写 ：new Class[]{String.class , int.class}
+    Method privateMethod =
+            mClass.getDeclaredMethod("privateMethod", String.class, int.class);
+            
+    //3. 开始操作方法
+    if (privateMethod != null) {
+        //获取私有方法的访问权
+        //只是获取访问权，并不是修改实际权限
+        privateMethod.setAccessible(true);
+        
+        //使用 invoke 反射调用私有方法
+        //privateMethod 是获取到的私有方法
+        //testClass 要操作的对象
+        //后面两个参数传实参
+        privateMethod.invoke(testClass, "Java Reflect ", 666);
+    }
+}
+
+```  
+
+2.  修改私有变量  
+    
+```
+/**
+ * 修改对象私有变量的值
+ * 为简洁代码，在方法上抛出总的异常
+ */
+private static void modifyPrivateFiled() throws Exception {
+    //1. 获取 Class 类实例
+    TestClass testClass = new TestClass();
+    Class mClass = testClass.getClass();
+    
+    //2. 获取私有变量
+    Field privateField = mClass.getDeclaredField("MSG");
+    
+    //3. 操作私有变量
+    if (privateField != null) {
+        //获取私有变量的访问权
+        privateField.setAccessible(true);
+        
+        //修改私有变量，并输出以测试
+        System.out.println("Before Modify：MSG = " + testClass.getMsg());
+        
+        //调用 set(object , value) 修改变量的值
+        //privateField 是获取到的私有变量
+        //testClass 要操作的对象
+        //"Modified" 为要修改成的值
+        privateField.set(testClass, "Modified");
+        System.out.println("After Modify：MSG = " + testClass.getMsg());
+    }
+}
+
+```

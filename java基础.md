@@ -53,6 +53,7 @@ public static Integer valueOf(int i) {
 
 [java基础中Integer值用==和equals判断相等问题解析](https://blog.csdn.net/w112736112736/article/details/77986283)
 ## 4. 关于hashMap
+自己实现的MyHashMap[MyHashMap](./MyHashMap.md)
 ### 4.1 hashMap的结构
    从存储结构来讲，hashMap内部使用Node实现，Node是HashMap的一个内部类，实现了Map.Entry接口，本质是就是一个映射(键值对)。一个Node对象有四个属性：hash值，key，value，还有链表的下一个Node.  
    

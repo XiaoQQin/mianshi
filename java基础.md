@@ -59,7 +59,8 @@ public static Integer valueOf(int i) {
    
    HashMap结构是数组+链表+红黑树（JDK1.8增加了红黑树部分),也就是解决hash冲突中的链地址法。简单来说就是数组加链表的结构，当key的到对应的hash值后，就得到数组的下表(哈希桶下标)，然后把数据放到对应数组的链表中。
    
-   hashMap初始桶的大小为16，当链表的长度大于8时，转化为红黑树。负载因子是0.75,阀值threshold=length*0.75是hashMap所能容纳的最大数量，当hashMap的size大于阀值时，就会扩容，将length变为原来的2倍。
+   hashMap初始桶的大小为16，当链表的长度大于8时，转化为红黑树。负载因子是0.75,阀值threshold=length*0.75是hashMap所能容纳的最大数量，当hashMap的size大于阀值时，就会扩容，将length变为原来的2倍。  
+   在jdk8以后，hashmap中的put是采用尾插法的，头插法会在多线程下产生循环链表。
 ### 4.2 怎么确定桶的索引
    确定桶的索引即是hashMap的hash算法：
    1.  获取key的hash值

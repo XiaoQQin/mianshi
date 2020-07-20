@@ -1,3 +1,4 @@
+基本参考[JavaGuide](https://github.com/Snailclimb/JavaGuide/tree/master/docs/operating-system)
 ## 1.进程和线程的区别
 **进程**  
 进程是程序的一次执行过程,是动态的,是程序执行过程中分配和管理资源的基本单位。系统运行一个程序即是一个进程从创建，运行到消亡的过程。  

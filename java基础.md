@@ -91,8 +91,47 @@ public static Integer valueOf(int i) {
    ![Alt](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2016/4d8022db.png)
    ![Alt](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2016/d773f86e.png)
    
-#### 为什么hashMap是线程不安全的
-   HashMap是线程不安全的，它的不安全就体现在resize的时候，多线程的情况下，可能会形成环形链表，导致下一次读取的时候可能会出现死循环。
+#### 为什么hashMap是线程不安全的  
+   是线程不安全的。分别需要从jdk7和jdk8进行分析
+   - jdk1.8  
+   
+   ![P44mT.png](https://wx1.sbimg.cn/2020/07/27/P44mT.png)  
+   
+   在put方法中，图中标识处，当两个线程同时到达此处，发现tab[i]都是null，则会new一个Node，此时如果一个线程挂起了，另一个线程完成了tab[i]的赋值，另一个线程此时重新执行，由于不会检查，认为此时还是null，则会进行覆盖，那么之前的数据就丢失了。  
+   ![P4Mao.png](https://wx1.sbimg.cn/2020/07/27/P4Mao.png)    
+   此外size不是volatile修饰，也没有进行同步，那么多线程情况就下，++size就会出现线程不安全。  
+   **总结**：因为是尾插，不会产生7那种闭环死循环情况，jdk1.8中的hashMap线程不安全是在多线程并发情况下会产生数据丢失的问题.
+   - jdk1.7中HashMap的put方法采用的是头插法，这会在resize也就是扩容的时候，有一个tranfor方法将作用旧数组上的数据转移到新table中，从而完成扩容，这时候在多线程环境下会产生循环链表
+   ```
+    /**
+   * 作用：将旧数组上的数据转移到新table中，从而完成扩容
+   * 过程：按旧链表的正序遍历链表、在新链表的头部依次插入
+   */
+    void transfer(Entry[] newTable) {
+          Entry[] src = table;              
+          int newCapacity = newTable.length;
+          // 通过遍历旧数组，将旧数组上的数据转移到新数组中
+          for (int j = 0; j < src.length; j++) {  
+              Entry e = src[j];          
+              if (e != null) {
+                  src[j] = null;
+                  do {
+                      // 注：转移链表时，因是单链表，故要保存下1个结点，否则转移后链表会断开
+                      Entry next = e.next;
+                     int i = indexFor(e.hash, newCapacity);
+                     // 扩容后，出现逆序：1->2->3 => 因为头插法：3->2->1
+                     e.next = newTable[i];
+                     //这里会出现线程不安全，当一个线程在这里挂起
+                     newTable[i] = e;
+                     // 访问下1个Entry链上的元素，如此不断循环，直到遍历完该链表上的所有节点
+                     e = next;            
+                 } while (e != null);
+             }
+         }
+     }
+   ```
+   就是当线程A执行到面线程不安全的地方，失去cpu时间片，当线程B完成了扩容，此时A获取到cpu时间片了，继续执行代码，这时候会出现两个Node的next互相指向，形成了闭环，也就是死循环，还有造成数据丢失。  
+   **总结**：HashMap因此采用头插法，在多线程情况下，resize时会导致node的next相互指引，产生循环链表
 #### 为啥链表为8就转为红黑树?为什么负载因子为0.75？
    在随机hash的情况下，进每个桶的概率遵循**泊松分布**，当这个桶内已经有8个node节点时，后续进入这个桶的概率接近于0
    ```

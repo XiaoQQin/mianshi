@@ -98,7 +98,7 @@ public static Integer valueOf(int i) {
    ![P44mT.png](https://wx1.sbimg.cn/2020/07/27/P44mT.png)  
    
    在put方法中，图中标识处，当两个线程同时到达此处，发现tab[i]都是null，则会new一个Node，此时如果一个线程挂起了，另一个线程完成了tab[i]的赋值，另一个线程此时重新执行，由于不会检查，认为此时还是null，则会进行覆盖，那么之前的数据就丢失了。  
-   ![P4Mao.png](https://wx1.sbimg.cn/2020/07/27/P4Mao.png)    
+   [![P4Mao.md.png](https://wx1.sbimg.cn/2020/07/27/P4Mao.md.png)](https://sbimg.cn/image/P4Mao)    
    此外size不是volatile修饰，也没有进行同步，那么多线程情况就下，++size就会出现线程不安全。  
    **总结**：因为是尾插，不会产生7那种闭环死循环情况，jdk1.8中的hashMap线程不安全是在多线程并发情况下会产生数据丢失的问题.
    - jdk1.7中HashMap的put方法采用的是头插法，这会在resize也就是扩容的时候，有一个tranfor方法将作用旧数组上的数据转移到新table中，从而完成扩容，这时候在多线程环境下会产生循环链表

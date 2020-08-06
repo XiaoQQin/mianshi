@@ -33,8 +33,52 @@ Redis事务本质：一组命令的集合！ 一个事务中的所有命令都�
 - 执行事务(exec)
 ### 事务有两种异常  
 - 编译型异常（代码有问题！ 命令有错！),事务中所有的命令都不会被执行。
+   ```
+   127.0.0.1:6379> multi
+   OK
+   127.0.0.1:6379> set k1 v1
+   QUEUED
+   127.0.0.1:6379> set k2 v2
+   QUEUED
+   127.0.0.1:6379> set k3 v3
+   QUEUED
+   127.0.0.1:6379> getset k3   #错误的命令
+   (error) ERR wrong number of arguments for 'getset' command
+   127.0.0.1:6379> set k4 v4
+   QUEUED
+   127.0.0.1:6379> set k5 v5
+   QUEUED
+   127.0.0.1:6379> exec  #执行事务会报错
+   (error) EXECABORT Transaction discarded because of previous errors.
+   127.0.0.1:6379> get k5    #所有事务都不会执行成功
+   (nil)
+   127.0.0.1:6379> 
+   ```
 - 运行时异常(1/0)：， 如果事务队列中存在语法性，那么执行命令的时候，其他命令是可以正常执行的，错误命令抛出异常！
-
+   ```
+   127.0.0.1:6379> set k1 "v1"
+   OK
+   127.0.0.1:6379> multi
+   OK
+   127.0.0.1:6379> incr k1    #执行时才会失败
+   QUEUED
+   127.0.0.1:6379> set k2 v2
+   QUEUED
+   127.0.0.1:6379> set k3 v3
+   QUEUED
+   127.0.0.1:6379> get k3
+   QUEUED
+   127.0.0.1:6379> exec
+   1) (error) ERR value is not an integer or out of range  #虽然第一条命令报错了，但事务仍正常执行，其他事务执行成功
+   2) OK
+   3) OK
+   4) "v3"
+   127.0.0.1:6379> get k2
+   "v2"
+   127.0.0.1:6379> get k3
+   "v3"
+   127.0.0.1:6379> 
+   ```
 ## 5.Redis持久化
 Redis是内存数据库，如果不将内存中的数据库状态保存到磁盘，那么一旦服务器进程退出，服务器中的数据库状态也会消失。Redis有两种持久化方式。
 ### RDB    

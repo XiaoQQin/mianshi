@@ -220,11 +220,23 @@ java中的栈中存储的是一个个栈帧，每个java方法执行都会创建
   
 **内存泄漏**：所分配过内存空间不能进行回收，造成可用的内存越来越少。  
 
-**解决java堆溢出问题**  
-首先使用内存映像分析工具对Dump出来的堆转储快照进行分析，重点是确认内存中的对象是否是必要的，也就是要先分清除到底是出现了内存泄漏（Memory Leak）还是内存溢出（Memory Overflow）。    
+#### 定位java溢出问题
+常见的内存溢出有两种，方法区溢出和堆内存溢出。
+- **方法区溢出**: 出现该问题时，JVM会报如下类似错误：**java.lang.OutOfMemoryError : PermGenSpace**，Perm区的最大内存大小可以通过```-XX:MaxPermSize```来指定。引起这类内存溢出的问题的原因一般有两个：**一是常量池太大，而是需要加载的Class类太多**。
+- **堆内存溢出**：堆内存溢出是最为常见的内存溢出问题，发生堆内存溢出时，JVM会报告如下错误：**java.lang.OutOfMemoryError : java heap space** 可通过设置**-Xms和-Xmx** 来设置初始堆和最大堆得大小。堆内存溢出顾名思义就是，堆内存不够用了。堆内存的定位方法如下：
+  - 使用强大的定位工具如jprofiler。通过jprofiler可以实时的监控到，当前的堆内存的总体使用情况及当前存活的对象、大小、分配树、对象引用链等等，功能非常全面
+  - 使用内存映像分析工具对Dump出来的堆转储快照进行分析,比如JVM自带的jmap工具，导出dump信息后就可以通过jprofiler工具或者HeapAnalyzer做分析
+  - 通过visualVM程序监控JVM，这个是JDK1.6自带的可视化监控工具  
   
+
+[定位JVM内存溢出问题思路总结](https://blog.csdn.net/xishanxinyue/article/details/15336551?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param)
+#### 定位java内存泄漏问题
+  - 确定发生频繁Full GC现象
+    首先通过**虚拟机进程状况工具：jps**找出正在运行的虚拟机进程，最主要是找出这个进程在本地虚拟机的唯一ID，再利用**虚拟机统计信息监视工具：jstat**监视虚拟机各种运行状态信息，查看执行结果
+  - 找出导致频繁Full GC的原因
+    - 把堆dump下来再用MAT等工具进行分析，但dump堆要花较长的时间，并且文件巨大
+    - 使用**java内存影像工具：jmap**生成dump文件进行分析
+  - 定位到代码：使用一些工具定位到代码，比如**MAT**  
   
- 如果是内存泄漏，可进一步通过工具查看泄漏对象到GC Roots的引用链。于是就能找到泄露对象是通过怎样的路径与GC Roots相关联并导致垃圾收集器无法自动回收他们的。掌握了泄漏对象的类型信息及GC Roots引用链的信息，就可以比较准确的定位出泄漏代码的位置。    
-   
-   
- 如果不存在泄漏，换句话说，就是内存中的对象确实还必须存活着，那就应当检查虚拟机的堆参数（-Xmx与-Xms），与机器物理内存对比看是否还可以调大，从代码上检查虚拟机的堆参数（-Xmx与-Xms），与机器物理内存对比看是否还可以调大，从代码上检查是否存在某些对象生命周期过长、持有状态时间过长的情况，尝试减少的程序运行期的内存消耗。
+
+[Java内存泄漏的排查总结](https://blog.csdn.net/fishinhouse/article/details/80781673)

@@ -21,9 +21,10 @@
    
  (String：字符串常量池)[https://segmentfault.com/a/1190000009888357]  
 ### String、StringBuffer和 StringBuilder
-   String是字符串常量,StringBuffer和StringBuilder 是字符串变量,使用 + 的话会创建一个新的字符串对象。 
-   String长度不可变，StringBuffer和StringBuilder都是可变的。
-   StringBuffer是线程安全的，StringBuilder是非线程安全的。这是因为Stringbuffer中方法大都采用了synchronized的关键字修饰。
+ -  String是字符串常量,StringBuffer和StringBuilder 是字符串变量,使用 + 的话会创建一个新的字符串对象。   
+ -  为了实现修改字符序列的目的，StringBuffer和StringBuilder底层都是利用可修改的（char，JDK 9以后是byte）数组，构建时初始字符串长度为16。区别在于是否加入了snychronized关键字
+ -  String长度不可变，StringBuffer和StringBuilder都是可变的。  
+ -  StringBuffer是线程安全的，StringBuilder是非线程安全的。这是因为Stringbuffer中方法大都采用了synchronized的关键字修饰。  
 ## 2. 关于==和equals
    ==比较的是变量的内存地址，用来判断两个变量是否为同一对象，有相同的内存地址。equals一般比较对象中的内容是否相同，可以通俗的理解我们是否赋值的相同。  
    默认情况下，当一个类从Object类继承而来，如果没有重写equals，那么equals和“==”的作用是相同的，都是比较内存地址。因此我们可以按照我们自己的需求，来重写equals。
@@ -60,6 +61,84 @@ public static Integer valueOf(int i) {
 #### 重载和重写
 - **重载**：发生在同一类中，**方法名相同，其他可以不同**，参数类型不同、个数不同、顺序不同，⽅法返回值和访问修饰符可以不同。
 - **重写**：重写发⽣在运⾏期，是⼦类对⽗类的允许访问的⽅法的实现过程进⾏重新编写。
+#### java平台的理解
+Java本身是一种面向对象的语言，最显著的特性有两个方面，一是所谓的“书写一次，到处运行”（Write once, run anywhere），能够非常容易地获得跨平台能力；另外就是垃圾收集（GC, Garbage Collection），Java通过垃圾收集器（Garbage Collector）回收分配内存，大部分情况下，程序员不需要自己操心内存的分配和回收。  
+![20bc6a900fc0b829c2f0e723df050732.png](https://i.loli.net/2020/08/18/flGs2yUA5kQm6Tc.png)  
+我们日常会接触到JRE（Java Runtime Environment）或者JDK（Java Development Kit）。 JRE，也就是Java运行环境，包含了JVM和Java类库，以及一些模块等。而JDK可以看作是JRE的一个超集，提供了更多工具，比如编译器、各种诊断工具等。
+#### java是解释运行还是编译运行
+我们开发的Java的源代码，首先通过**Javac编译成为字节码（bytecode)**，然后，在运行时，通过 Java虚拟机（JVM）内嵌的解释器将字节码转换成为最终的机器码。但是常见的JVM，比如我们大多数情况使用的Oracle JDK提供的Hotspot JVM，都提供了JIT（Just-In-Time）编译器，也就是通常所说的动态编译器，JIT能够在运行时将热点代码编译成机器码，这种情况下部分热点代码就属于编译执行，而不是解释执行了。
+## Exception和Error的区别  
+
+Exception和Error都是继承了Throwable类，在Java中只有Throwable类型的实例才可以被抛出（throw）或者捕获（catch），它是异常处理机制的基本组成类型。    
+  
+Exception和Error体现了Java平台设计者对不同异常情况的分类。Exception是程序正常运行中，可以预料的意外情况，可能并且应该被捕获，进行相应处理。  
+  
+Error是指在正常情况下，不大可能出现的情况，绝大部分的Error都会导致程序（比如JVM自身）处于非正常的、不可恢复状态。既然是非正常情况，所以不便于也不需要捕获，常见的比如OutOfMemoryError之类，都是Error的子类。  
+  
+Exception又分为可检查（checked）异常和不检查（unchecked）异常，可检查异常在源代码里必须显式地进行捕获处理，这是编译期检查的一部分。前面我介绍的不可查的Error，是Throwable不是Exception。
+  
+不检查异常就是所谓的运行时异常，类似 NullPointerException、ArrayIndexOutOfBoundsException之类，通常是可以编码避免的逻辑错误，具体根据需要来判断是否需要捕获，并不会在编译期强制要求。
+#### 捕捉异常的开销
+- try-catch代码段会产生额外的性能开销，或者换个角度说，它往往会影响JVM对代码进行优化，所以建议仅捕获有必要的代码段，尽量不要一个大的try包住整段的代码；与此同时，利用异常控制代码流程，也不是一个好主意，远比我们通常意义上的条件语句（if/else、switch）要低效。  
+- Java每实例化一个Exception，都会对当时的栈进行快照，这是一个相对比较重的操作。如果发生的非常频繁，这个开销可就不能被忽略了
+#### 捕捉异常的实践
+- **尽量不要捕捉类似Exception的通用异常，让程序更加的明了，可读性更高**。如下所示
+  ```java
+  try {
+  // 业务代码
+  Thread.sleep(1000L);
+  } catch (Exception e) { //这里应该捕捉 Thread.sleep()抛出的InterruptedException
+  //处理
+  }
+  ```
+- **不要生吞异常，即直接输出异常**，如下所示
+  ```java
+  try {
+   // 业务代码
+  } catch (IOException e) {
+    e.printStackTrace(); //不要直接输入异常，应该输出到日志文件中
+  }
+  ```
+- **Throw early,catch late原则**
+  ```java
+  public void readFile(String filename){
+     Objects.requireNonNull(filname)  //throw early
+     // some operations
+     InputStream int=new FileInputStream(filename);
+     // some operations
+  }
+  ```
+  如果fileName是null，那么程序就会抛出NullPointerException，但是由于没有第一时间暴露出问题，堆栈信息可能非常令人费解，往往需要相对复杂的定位。所以一开始在方法里就判断是否为空
+#### NoClassDefFoundError和ClassNotFoundException
+NoClassDefFoundError是一个**错误(Error)**，而 ClassNOtFoundException 是**一个异常**。  
+- **ClassNotFoundException**产生原因:
+   -  Java支持使用 Class.forName 方法来动态地加载类，任意一个类的类名如果被作为参数传，递给这个方法都将导致该类被加载到 JVM 中。如果这个类在类路径中没有被找到，那么此时就会在运行时抛出 ClassNotFoundException 异常.
+   -  当一个类已经某个类加载器加载到内存中了，此时另一个类加载器又尝试着动态地从同一个包中加载这个类。
+- **NoClassDefFoundError 产生的原因**:
+   -  当 Java 虚拟机 或 ClassLoader 实例试图在类的定义中加载（作为通常方法调用的一部分，或者是使用 new 来创建新的对象）时，却找不到类的定义（要查找的类在编译的时候是存在的，运行的时候却找不到了），抛出此异常。即当前执行的类被编译时，所搜索的类定义存在，但无法再找到该定义。 这个错误往往是你使用 new 操作符来创建一个新的对象，但却找不到该对象对应的类。这个时候就会导致NoClassDefFoundError
+   
+#### NoClassDefFoundError和ClassNotFoundException的区别
+-   ClassNotFoundException 发生在装入阶段。当应用程序试图通过类的字符串名称，使用常规的三种方法装入类，但却找不到指定名称的类定义时就抛出该异常。
+-   NoClassDefFoundError 当目前执行的类已经编译，但是找不到它的定义时。也就是说你如果编译了一个类B，在类A中调用，编译完成以后，你又删除掉B，运行A的时候那么就会出现这个错误  
+-   加载时从外存储器找不到需要的 Class 就出现 ClassNotFoundException   
+-   连接时从内存找不到需要的 class 就出现 NoClassDefFoundError
+[ClassNotFoundException 和 NoClassDefFoundError 的区别](https://cloud.tencent.com/developer/article/1153789)  
+## Java反射中获取Class对象三种方式的区别
+- new Object().getClass:获取对象的Class对象，根本不会调用对象中任何的代码块或代码   
+- Object.class:调用静态代码块的内容
+- Class.forName("java.util.String"):要先实例化对象
+## final、finally、 finalize的区别
+- final可以用来修饰类、方法、变量，分别有不同的意义，final修饰的class代表不可以继承扩展，final的变量是不可以修改的，而final的方法也是不可以重写的（override）。在并发编程中，将变量设置为final可以保证程序的只读性。
+- finally则是Java保证重点代码一定要被执行的一种机制。我们可以使用try-finally或者try-catch-finally来进行类似关闭JDBC连接、保证unlock锁等动作。
+  ```java
+  try {
+  // do something
+  System.exit(1);
+  } finally{
+    System.out.println(“Print from finally”); //这里的finally是不会输出的
+  }
+  ```
+- finalize是基础类java.lang.Object的一个方法，它的设计目的是保证对象在被垃圾收集前完成特定资源的回收。finalize机制现在已经不推荐使用。
 ## 4. 关于hashMap
 自己实现的MyHashMap[MyHashMap](./MyHashMap.md)
 ### 4.1 hashMap的结构
@@ -179,9 +258,13 @@ public static Integer valueOf(int i) {
    结构同hashMap一样，内部都是Node节点存储数据，但是node节点中的val 和 next都使用了volatile保证可见性。
    在put的时候会利用 synchronized 锁写入数据。
 
-## 5. 关于ArrayList和LinkedList
-   ArrayList为动态数组,随机访问元素效率高，删除元素或者向数组总添加元素效率更低。
-   LinkedList是链表数组，数据添加，删除效率高，只需要改变指针即可，但访问元素效率低。  
+## 5. 关于ArrayList和LinkedList和Vector
+-  Vector是Java早期提供的线程安全的动态数组，如果不需要线程安全，并不建议选择，毕竟同步是有额外开销的。Vector内部是使用对象数组来保存数据，可以根据需要自动的增加容量，当数组已满时，会创建新的数组，并拷贝原有数组数据  
+-  ArrayList是应用更加广泛的动态数组实现，它本身不是线程安全的，所以性能要好很多。与Vector近似，ArrayList也是可以根据需要调整容量，不过两者的调整逻辑有所区别，Vector在扩容时会提高1倍，而ArrayList则是增加50%。  
+-  LinkedList顾名思义是Java提供的双向链表，所以它不需要像上面两种那样调整容量，它也不是线程安全的。
+#### 区别
+   ArrayList为动态数组,随机访问元素效率高，插入和删除效率低。
+   LinkedList是链表数组，节点插入、删除却要高效得多，但是随机访问性能则要比动态数组慢。  
    - **是否保证线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全。如果ArrayList要使用线程安全的，需要使用**Vector**。    
    - **底层数据结构**：ArrayList底层使用**Object数组**，LinkedList使用的是**双向链表**数据结构
    

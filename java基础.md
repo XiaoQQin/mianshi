@@ -41,7 +41,7 @@ public static Integer valueOf(int i) {
   return new Integer(i);  
 }
 ```
-可以看到有一个IntegerCache，默认IntegerCache.low 是-127，Integer.high是128，如果参数中的i在这个范围之内，则返回一个数组中的内容，
+可以看到有一个IntegerCache，默认IntegerCache.low 是-128，Integer.high是127，如果参数中的i在这个范围之内，则返回一个数组中的内容，
 如果不在这个范围，则new一个新的Integer对象并返回。  
 
 两个自动装箱的变量，但是装箱传递的值大于127，比如 Integer a=200,b=200; a==b; 那么a==b 就会返回false。因为值不在-128-127这个返回，如果在这个范围那么返回的是true.
@@ -124,9 +124,9 @@ NoClassDefFoundError是一个**错误(Error)**，而 ClassNOtFoundException 是*
 -   连接时从内存找不到需要的 class 就出现 NoClassDefFoundError
 [ClassNotFoundException 和 NoClassDefFoundError 的区别](https://cloud.tencent.com/developer/article/1153789)  
 ## Java反射中获取Class对象三种方式的区别
-- new Object().getClass:获取对象的Class对象，根本不会调用对象中任何的代码块或代码   
+- Class.forName("java.util.String"):获取对象的Class对象，根本不会调用对象中任何的代码块或代码   
 - Object.class:调用静态代码块的内容
-- Class.forName("java.util.String"):要先实例化对象
+- new Object().getClass：要先实例化对象
 ## final、finally、 finalize的区别
 - final可以用来修饰类、方法、变量，分别有不同的意义，final修饰的class代表不可以继承扩展，final的变量是不可以修改的，而final的方法也是不可以重写的（override）。在并发编程中，将变量设置为final可以保证程序的只读性。
 - finally则是Java保证重点代码一定要被执行的一种机制。我们可以使用try-finally或者try-catch-finally来进行类似关闭JDBC连接、保证unlock锁等动作。

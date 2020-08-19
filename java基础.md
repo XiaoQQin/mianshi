@@ -254,12 +254,12 @@ NoClassDefFoundError是一个**错误(Error)**，而 ClassNOtFoundException 是*
    负载因子为0.75是出于时间和空间的考虑，负载因子过大就会造成过多的hash冲突，过小就会引起空间的浪费，因此设为0.75
 ### 4.4 使用ConcurrentHashMap
    
-   ConcurrentHashMap在java1.8中，抛弃了原有的 Segment 分段锁，而采用了 CAS + synchronized 来保证并发安全性。
+   ConcurrentHashMap在java1.8中，抛弃了原有的 Segment 分段锁，而采用了 CAS + 变量volatile+putValue方法synchronized 来保证并发安全性。
    结构同hashMap一样，内部都是Node节点存储数据，但是node节点中的val 和 next都使用了volatile保证可见性。
    在put的时候会利用 synchronized 锁写入数据。
 
 ## 5. 关于ArrayList和LinkedList和Vector
--  Vector是Java早期提供的线程安全的动态数组，如果不需要线程安全，并不建议选择，毕竟同步是有额外开销的。Vector内部是使用对象数组来保存数据，可以根据需要自动的增加容量，当数组已满时，会创建新的数组，并拷贝原有数组数据  
+-  Vector是Java早期提供的线程安全的动态数组，如果不需要线程安全，并不建议选择，毕竟同步是有额外开销的。Vector内部是使用对象数组来保存数据，可以根据需要自动的增加容量，当数组已满时，会创建新的数组，并拷贝原有数组数据
 -  ArrayList是应用更加广泛的动态数组实现，它本身不是线程安全的，所以性能要好很多。与Vector近似，ArrayList也是可以根据需要调整容量，不过两者的调整逻辑有所区别，Vector在扩容时会提高1倍，而ArrayList则是增加50%。  
 -  LinkedList顾名思义是Java提供的双向链表，所以它不需要像上面两种那样调整容量，它也不是线程安全的。
 #### 区别

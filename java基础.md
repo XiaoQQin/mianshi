@@ -26,10 +26,10 @@
  -  String长度不可变，StringBuffer和StringBuilder都是可变的。  
  -  StringBuffer是线程安全的，StringBuilder是非线程安全的。这是因为Stringbuffer中方法大都采用了synchronized的关键字修饰。  
 ## 2. 关于==和equals
-   ==比较的是变量的内存地址，用来判断两个变量是否为同一对象，有相同的内存地址。equals一般比较对象中的内容是否相同，可以通俗的理解我们是否赋值的相同。  
-   默认情况下，当一个类从Object类继承而来，如果没有重写equals，那么equals和“==”的作用是相同的，都是比较内存地址。因此我们可以按照我们自己的需求，来重写equals。
+  - **==**：对于基本数据类型，比较的是值是否相同。对于对象，比较的是指向的内存地址是否相同
+  - **equals**:equals一般比较对象中的内容是否相同，可以通俗的理解我们是否赋值的相同。默认情况下，当一个类从Object类继承而来，如果没有重写equals，那么equals和“==”的作用是相同的，都是比较内存地址。因此我们可以按照我们自己的需求，来重写equals。
 #### 重写equals为什么要重写hashCode()方法？
-   重写equals我们一般是希望判断对象里面的内容是否相同，两个对象如果equals返回true，我们认为即对象相等，2个对象的equals()方法返回true的话，其hashCode()必须返回相同的值。否则对于HashSet, HashMap, HashTable等基于hash值的类就会出现问题。
+   重写equals我们一般是希望判断对象里面的内容是否相同，两个对象如果equals返回true，我们认为即对象相等，2个对象的equals()方法返回true的话，其hashCode()必须返回相同的值，就是为了保证同一个对象，保证在equals相同的情况下hashcode值必定相同。否则对于HashSet, HashMap, HashTable等基于hash值的类就会出现问题。
 ## 3. 关于Integer
 关于Integer这个类，它是重写了equals方法的，比较的是两个Intger对象的值是否相同。  
 如果将一个整型直接赋值给一个Integer对象，会发生自动装箱，比如： Integer a=200。它相当于 Integer a=Integer.valueOf(200).下面valueOf方法的源代码：  
@@ -260,12 +260,12 @@ NoClassDefFoundError是一个**错误(Error)**，而 ClassNOtFoundException 是*
    在put的时候会利用 synchronized 锁写入数据。
 
 ## 5. 关于ArrayList和LinkedList和Vector
--  Vector是Java早期提供的线程安全的动态数组，如果不需要线程安全，并不建议选择，毕竟同步是有额外开销的。Vector内部是使用对象数组来保存数据，可以根据需要自动的增加容量，当数组已满时，会创建新的数组，并拷贝原有数组数据
--  ArrayList是应用更加广泛的动态数组实现，它本身不是线程安全的，所以性能要好很多。与Vector近似，ArrayList也是可以根据需要调整容量，不过两者的调整逻辑有所区别，Vector在扩容时会提高1倍，而ArrayList则是增加50%。  
+-  Vector是Java早期提供的线程安全的动态数组，如果不需要线程安全，并不建议选择，毕竟同步是有额外开销的。Vector内部是使用对象数组来保存数据，可以根据需要自动的增加容量，当数组已满时，会创建新的数组，并拷贝原有数组数据。**Vector**可以线程安全的原因是**它的方法基本都使用了synchronized关键字进行修饰**
+-  ArrayList是应用更加广泛的动态数组实现，它本身不是线程安全的，所以性能要好很多。与Vector近似，ArrayList也是可以根据需要调整容量，不过两者的调整逻辑有所区别，**Vector在扩容时会变成原来数组长度的2倍，而ArrayList则是变为原来数组的1.5倍**。  
 -  LinkedList顾名思义是Java提供的双向链表，所以它不需要像上面两种那样调整容量，它也不是线程安全的。
 #### 区别
    ArrayList为动态数组,随机访问元素效率高，插入和删除效率低。
-   LinkedList是链表数组，节点插入、删除却要高效得多，但是随机访问性能则要比动态数组慢。  
+   LinkedList是双向链表，节点插入、删除却要高效得多，但是随机访问性能则要比动态数组慢。  
    - **是否保证线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全。如果ArrayList要使用线程安全的，需要使用**Vector**。    
    - **底层数据结构**：ArrayList底层使用**Object数组**，LinkedList使用的是**双向链表**数据结构
    

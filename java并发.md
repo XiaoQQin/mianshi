@@ -137,10 +137,10 @@
      
    当线程池中的线程数已达到最大线程数，并且任务队列已满时，线程池就会采用**饱和策略(拒绝策略)**  
      
-   - **ThreadPoolExecutor.AbortPolicy**：抛出 RejectedExecutionException异常来拒绝新任务的处理。  
-   - **ThreadPoolExecutor.CallerRunsPolicy**：调用执行自己的线程运行任务，也就是直接在调用execute方法的线程中运行(run)被拒绝的任务，如果执行程序已关闭，则会丢弃该任务。因此这种策略会降低对于新任务提交速度，影响程序的整体性能。另外，这个策略喜欢增加队列容量。如果您的应用程序可以承受此延迟并且你不能任务丢弃任何一个任务请求的话，你可以选择这个策略。  
-   - **ThreadPoolExecutor.DiscardPolicy**： 不处理新任务，直接丢弃掉  
-   - **ThreadPoolExecutor.DiscardOldestPolicy**： 此策略将丢弃最早的未处理的任务请求
+   - **ThreadPoolExecutor.AbortPolicy**：当任务添加到线程池中被拒绝时，它将抛出 RejectedExecutionException 异常。 
+   - **ThreadPoolExecutor.CallerRunsPolicy**：当任务添加到线程池中被拒绝时，会在线程池当前正在运行的Thread线程池中处理被拒绝的任务。  
+   - **ThreadPoolExecutor.DiscardPolicy**： 当任务添加到线程池中被拒绝时，线程池将丢弃被拒绝的任务 
+   - **ThreadPoolExecutor.DiscardOldestPolicy**： 当任务添加到线程池中被拒绝时，线程池会放弃等待队列中最旧的未处理任务，然后将被拒绝的任务添加到等待队列中。
    
 ### 4.4 线程池执行流程  
      
@@ -156,6 +156,8 @@
   
 更多详细内容，强烈推荐[java线程池学习总结](https://github.com/Snailclimb/JavaGuide/blob/master/docs/java/Multithread/java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93.md)
 
+### submit和execute方法
+**把一个任务加入线程池可以使用submit和execute方法**，submit方法有返回future。
 ## 5. volatile和synchronized的区别    
   
   

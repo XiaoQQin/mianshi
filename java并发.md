@@ -327,3 +327,125 @@ https://www.zhihu.com/question/37601861/answer/145545371)
 - 首先，可以使用**jps或者系统的ps命令**、任务管理器等工具，确定进程ID
 - 其次，调用**jstack**获取线程栈
 - 最后，结合代码分析线程栈信息
+
+## 线程打印问题
+### 两个线程交替打印奇数和偶数
+-  使用synchronized
+   ```java
+   public class useSynchronized2  implements Runnable{
+       //static 保证变量的可见性
+       static int value=1;
+       @Override
+       public void run() {
+           while(value<=100){
+               //锁住的是class
+               synchronized (useSynchronized2.class){
+                   System.out.println(Thread.currentThread().getName()+":"+value++);
+                   //唤醒其他线程
+                   useSynchronized2.class.notify();
+                   //增加判断，如果当前value>100，唤醒wait的线程，结束程序
+                   try {
+                       if(value>100){
+                           useSynchronized2.class.notifyAll();
+                       }else{
+                           useSynchronized2.class.wait();
+                       }
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   }
+               }
+           }
+       }
+
+       public static void main(String[] args) {
+
+           new Thread(new useSynchronized2(),"奇数").start();
+           new Thread(new useSynchronized2(),"偶数").start();
+       }
+   }
+   ```
+-  使用lock
+   ```java
+   public class useLock  implements Runnable{
+    //通过lock锁来保证线程的访问的互斥
+    static Lock lock=new ReentrantLock();
+    static int value=1;
+
+    @Override
+    public void run() {
+        while (value<=100){
+            try {
+                lock.lock();
+                System.out.println(Thread.currentThread().getName()+":"+value++);
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        new Thread(new useLock(),"奇数").start();
+        new Thread(new useLock(),"偶数").start();
+    }
+   }
+   ```
+   
+### 线程交替打印ABC
+- 使用synchornized
+   ```java
+   public class printABC {
+       static class PrintThread implements Runnable{
+           String name;
+           Object pre;
+           Object self;
+           PrintThread(String name,Object pre,Object self){
+               this.name=name;
+               this.pre=pre;
+               this.self=self;
+           }
+           @Override
+           public void run() {
+               int count=10;
+               while (count>0){
+                   synchronized (pre){
+                       synchronized (self){
+                           System.out.print(name);
+                           count--;
+                           //唤醒其他线程竞争self
+                           self.notifyAll();
+                       }
+                       try {
+                           //当前线程阻塞
+                           if(count==0){
+                               //如果count==0,表示这是最后一次打印操作，通过notifyAll操作释放对象锁。
+                               pre.notifyAll();
+                           }else
+                           pre.wait();
+                       } catch (InterruptedException e) {
+                           e.printStackTrace();
+                       }
+                   }
+               }
+           }
+       }
+
+       public static void main(String[] args) throws InterruptedException {
+           Object a=new Object();
+           Object b=new Object();
+           Object c=new Object();
+
+           PrintThread pta=new PrintThread("A",c,a);
+           PrintThread ptb=new PrintThread("B",a,b);
+           PrintThread ptc=new PrintThread("C",b,c);
+
+           new Thread(pta).start();
+           Thread.sleep(10);
+
+           new Thread(ptb).start();
+           Thread.sleep(10);
+
+           new Thread(ptc).start();
+           Thread.sleep(10);
+       }
+   }
+   ```

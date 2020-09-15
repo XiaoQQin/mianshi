@@ -101,10 +101,11 @@ redis采用的是**定期删除+惰性删除策略**。
 - volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
 - volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
 - volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
-- volatile-lfu：从已设置过期时间的数据集(server.db[i].expires)中挑选最不经常使⽤的数据淘汰
+- volatile-lfu：从已设置过期时间的数据集(server.db[i].expires)中挑选使用频率最低的数据淘汰
 - allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰
 - allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰
 - allkeys-lfu：当内存不⾜以容纳新写⼊数据时，在键空间中，移除最不经常使⽤的key
+- no-enviction（驱逐）：**禁止驱逐数据，这也是默认策略**。意思是当内存不足以容纳新入数据时，新写入操作就会报错，请求可以继续进行，线上任务也不能持续进行，采用no-enviction策略可以保证数据不被丢失
 ## 5.Redis持久化
 Redis是内存数据库，如果不将内存中的数据库状态保存到磁盘，那么一旦服务器进程退出，服务器中的数据库状态也会消失。Redis有两种持久化方式。
 ### RDB    
